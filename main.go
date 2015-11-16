@@ -9,13 +9,21 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"flag"
 	"github.com/oliamb/cutter"
 )
 
 func main() {
 
+	// Setup the flags
+	cHeight := flag.Int("height", 0, "Crop Height")
+	cWidth := flag.Int("width", 0, "Crop Width")
+	flag.Parse()
+
+	//XX: Check flags, file name specified
+
 	// Open the file specified as the first argument
-	inputFilePath := os.Args[1]
+	inputFilePath := flag.Args()[0]
 	inputFileDir, inputFileName := filepath.Split(inputFilePath)
 	f, err := os.Open(inputFilePath)
 	if err != nil {
@@ -30,11 +38,9 @@ func main() {
 	}
 
 	// Perform the cropping
-	cHeight := 800
-	cWidth := 700
 	croppedImg, err := cutter.Crop(img, cutter.Config{
-		Height:  cHeight,
-		Width:   cWidth,
+		Height:  *cHeight,
+		Width:   *cWidth,
 		Mode:    cutter.TopLeft,
 		Anchor:  image.Point{60, 10},
 		Options: 0,
