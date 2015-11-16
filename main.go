@@ -63,8 +63,6 @@ func cropAndSave(inputFilePath string, cWidth int, cHeight int) () {
 		err = png.Encode(croppedFile, croppedImg)
 	case ".jpg":
 		err = jpeg.Encode(croppedFile, croppedImg, &jpeg.Options{})
-	default:
-		err = errors.New("Unsupported format: " + filepath.Ext(inputFileName))
 	}
 
 	if err != nil {
