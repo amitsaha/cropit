@@ -1,3 +1,4 @@
+// Simple command line program to crop images
 package main
 
 import (
