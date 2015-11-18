@@ -2,35 +2,30 @@
 package main
 
 import (
-	"errors"
+	"bytes"
+	"flag"
 	"fmt"
+	"github.com/oliamb/cutter"
 	"image"
 	"image/jpeg"
 	"image/png"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"flag"
-	"github.com/oliamb/cutter"
 )
 
-func cropAndSave(inputFilePath string, cWidth int, cHeight int) () {
+// Return the cropped Image
+func crop(imageData []byte, imageType string, cWidth int, cHeight int) image.Image {
 
 	// Check if we can handle this image
-	fileExtension := filepath.Ext(inputFilePath)
-	if fileExtension != ".jpg" && fileExtension != ".png" {
+	if imageType != ".jpg" && imageType != ".png" {
 		log.Fatal("Cannot handle image of this type")
 	}
-	
-	inputFileDir, inputFileName := filepath.Split(inputFilePath)
-	f, err := os.Open(inputFilePath)
-	if err != nil {
-		log.Fatal("Cannot open file", err)
-	}
-	defer f.Close()
 
 	// We first decode the image
-	img, _, err := image.Decode(f)
+	reader := bytes.NewReader(imageData)
+	img, _, err := image.Decode(reader)
 	if err != nil {
 		log.Fatal("Cannot decode image:", err)
 	}
@@ -48,28 +43,7 @@ func cropAndSave(inputFilePath string, cWidth int, cHeight int) () {
 		log.Fatal("Cannot crop image:", err)
 	}
 
-	// Write the cropped image into a file
-	croppedFileName := "cropped_" + inputFileName
-	croppedFilePath := filepath.Join(inputFileDir, croppedFileName)
-	croppedFile, err := os.Create(croppedFilePath)
-	if err != nil {
-		log.Fatal("Could not save cropped image")
-	}
-	defer croppedFile.Close()
-
-	// Now we encode the cropped image data using the appropriate
-	// encoder and save it to the above file
-	switch fileExtension {
-	case ".png":
-		err = png.Encode(croppedFile, croppedImg)
-	case ".jpg":
-		err = jpeg.Encode(croppedFile, croppedImg, &jpeg.Options{})
-	}
-
-	if err != nil {
-		log.Fatal("Error saving")
-	}
-	fmt.Printf("Saved cropped image as %s\n", croppedFilePath)
+	return croppedImg
 }
 
 func main() {
@@ -91,8 +65,37 @@ func main() {
 	if len(flag.Args()) == 0 {
 		log.Fatal("Must specify at least 1 image to crop")
 	}
-	
-	// Open the file specified as the first argument
-	inputFilePath := flag.Args()[0]
-	cropAndSave(inputFilePath, *cWidth, *cHeight)
+
+	// Loop over each file , crop and save the cropped image.
+	for i, inputFilePath := range flag.Args() {
+		imageData, err := ioutil.ReadFile(inputFilePath)
+		if err != nil {
+			log.Fatal("Cannot open file", err)
+		}
+
+		// Open the file specified as the first argument
+		imageType := filepath.Ext(inputFilePath)
+		croppedImg := crop(imageData, imageType, *cWidth, *cHeight)
+
+		// Write the cropped image into a file
+		croppedFileName := fmt.Sprintf("cropped_%d%s", i, imageType)
+		croppedFile, err := os.Create(croppedFileName)
+		if err != nil {
+			log.Fatal("Could not create file for cropped image")
+		}
+		defer croppedFile.Close()
+
+		// Now we encode the cropped image data using the appropriate
+		// encoder and save it to the above file
+		switch imageType {
+		case ".png":
+			err = png.Encode(croppedFile, croppedImg)
+		case ".jpg":
+			err = jpeg.Encode(croppedFile, croppedImg, &jpeg.Options{})
+		}
+
+		if err != nil {
+			log.Fatal("Error saving")
+		}
+	}
 }
