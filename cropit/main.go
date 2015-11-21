@@ -1,4 +1,12 @@
-// Simple command line program using github.com/amitsaha/cropit/crop to crop images
+/* Simple command line program using github.com/amitsaha/cropit/crop to crop images
+
+Usage:
+
+$ go run main.go --height=5000 --width=7000 <path to>/cat1.jpg  <path to>cat2.png
+
+The cropped images will be placed in the same directory as the original images with
+the file names being ``cropped_<original_file_name>.<original_extension>``
+*/
 package main
 
 import (

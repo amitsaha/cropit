@@ -1,4 +1,4 @@
-// Simple command line program to crop images
+// Crop package exporting the Crop() function used to crop images
 package crop
 
 import (
@@ -22,7 +22,17 @@ func validateImageType(image_type string) bool {
 	return false
 }
 
-// Crop the image and write the cropped image to the provided writer
+/*
+Crop() takes in four parameters:
+
+imageData : byte[] representing the input image
+
+cWidth    : An int specifying the desired width of the cropped image
+
+cHeight   : An int specifying the desired height of the cropped image
+
+w         : An io.Writer to which to write the encoded ropped image bytes to
+*/
 func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer)  {
 
 	imageType := http.DetectContentType(imageData)
