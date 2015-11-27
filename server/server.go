@@ -1,12 +1,15 @@
+// HTTP server exposing the cropping functionality
+
 package main
 
 import (
-	"net/http"
 	"github.com/amitsaha/cropit/crop"
-	"log"
-	"strconv"
 	"io/ioutil"
+	"log"
+	"net/http"
+	"strconv"
 )
+
 // cropImage expectes the following HTTP FORM data:
 
 // image: The image must use this form key name
