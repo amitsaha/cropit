@@ -1,5 +1,4 @@
 // HTTP server exposing the cropping functionality
-
 package main
 
 import (
