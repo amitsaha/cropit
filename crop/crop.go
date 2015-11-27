@@ -7,8 +7,8 @@ import (
 	"image"
 	"image/jpeg"
 	"image/png"
-	"log"
 	"io"
+	"log"
 	"net/http"
 )
 
@@ -33,7 +33,7 @@ cHeight   : An int specifying the desired height of the cropped image
 
 w         : An io.Writer to which to write the encoded ropped image bytes to
 */
-func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer)  {
+func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer) {
 
 	imageType := http.DetectContentType(imageData)
 
@@ -74,4 +74,3 @@ func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer)  {
 		log.Fatal("Error saving")
 	}
 }
-
