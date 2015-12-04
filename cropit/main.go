@@ -13,12 +13,35 @@ import (
 	"bufio"
 	"flag"
 	"fmt"
+	"github.com/amitsaha/cropit/crop"
 	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
-	"github.com/amitsaha/cropit/crop"
 )
+
+func cropper(inputFilePath string, cWidth int, cHeight int, done chan string) {
+
+	imageData, err := ioutil.ReadFile(inputFilePath)
+	if err != nil {
+		log.Fatal("Cannot open file", err)
+	}
+
+	croppedFileDir, fileName := filepath.Split(inputFilePath)
+	croppedFileName := fmt.Sprintf("%scropped_%s", croppedFileDir, fileName)
+	croppedFile, err := os.Create(croppedFileName)
+	if err != nil {
+		log.Fatal("Could not create file for cropped image")
+	}
+	defer croppedFile.Close()
+
+	croppedFileWriter := bufio.NewWriter(croppedFile)
+	crop.Crop(imageData, cWidth, cHeight, croppedFileWriter)
+	croppedFileWriter.Flush()
+
+	// We are done with this file
+	done <- inputFilePath
+}
 
 func main() {
 
@@ -36,27 +59,21 @@ func main() {
 		log.Fatal("Must specify crop width")
 	}
 
-	if len(flag.Args()) == 0 {
+	numImages := len(flag.Args())
+	if numImages == 0 {
 		log.Fatal("Must specify at least 1 image to crop")
 	}
 
+	// Channel to synchronize with the go routines
+	done := make(chan string)
 	// Loop over each file , crop and save the cropped image.
 	for _, inputFilePath := range flag.Args() {
-		imageData, err := ioutil.ReadFile(inputFilePath)
-		if err != nil {
-			log.Fatal("Cannot open file", err)
-		}
-		
-		croppedFileDir, fileName := filepath.Split(inputFilePath)
-		croppedFileName := fmt.Sprintf("%scropped_%s", croppedFileDir, fileName)
-		croppedFile, err := os.Create(croppedFileName)
-		if err != nil {
-			log.Fatal("Could not create file for cropped image")
-		}
-		defer croppedFile.Close()
-		
-		croppedFileWriter := bufio.NewWriter(croppedFile)
-		crop.Crop(imageData, *cWidth, *cHeight, croppedFileWriter)
-		croppedFileWriter.Flush()
+		go cropper(inputFilePath, *cWidth, *cHeight, done)
 	}
+
+	// Wait for all the images to be cropped
+	for i := 0; i < numImages; i++ {
+		fmt.Printf("Cropped %s\n", <-done)
+	}
+
 }
