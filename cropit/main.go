@@ -20,7 +20,20 @@ import (
 	"path/filepath"
 )
 
-func cropper(inputFilePath string, cWidth int, cHeight int, done chan string) {
+type Result struct {
+	FilePath string
+	Error    string
+}
+
+func cropper(inputFilePath string, cWidth int, cHeight int, done chan Result) {
+
+	// Recover from any panic here so that one bad image doesn't bring the entire
+	// program down
+	defer func() {
+		if err := recover(); err != nil {
+			done <- Result{FilePath: inputFilePath, Error: fmt.Sprintf("%s", err)}
+		}
+	}()
 
 	imageData, err := ioutil.ReadFile(inputFilePath)
 	if err != nil {
@@ -40,7 +53,7 @@ func cropper(inputFilePath string, cWidth int, cHeight int, done chan string) {
 	croppedFileWriter.Flush()
 
 	// We are done with this file
-	done <- inputFilePath
+	done <- Result{FilePath: inputFilePath, Error: ""}
 }
 
 func main() {
@@ -65,7 +78,7 @@ func main() {
 	}
 
 	// Channel to synchronize with the go routines
-	done := make(chan string)
+	done := make(chan Result)
 	// Loop over each file , crop and save the cropped image.
 	for _, inputFilePath := range flag.Args() {
 		go cropper(inputFilePath, *cWidth, *cHeight, done)
@@ -73,7 +86,11 @@ func main() {
 
 	// Wait for all the images to be cropped
 	for i := 0; i < numImages; i++ {
-		fmt.Printf("Cropped %s\n", <-done)
+		result := <-done
+		if result.Error == "" {
+			fmt.Printf("Cropped %s\n", result.FilePath)
+		} else {
+			fmt.Printf("Error cropping %s, %s\n", result.FilePath, result.Error)
+		}
 	}
-
 }

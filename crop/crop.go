@@ -8,7 +8,6 @@ import (
 	"image/jpeg"
 	"image/png"
 	"io"
-	"log"
 	"net/http"
 )
 
@@ -39,14 +38,14 @@ func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer) {
 
 	// Check if we can handle this image
 	if !validateImageType(imageType) {
-		log.Fatal("Cannot handle image of this type")
+		panic("Cannot handle image of this type")
 	}
 
 	// We first decode the image
 	reader := bytes.NewReader(imageData)
 	img, _, err := image.Decode(reader)
 	if err != nil {
-		log.Fatal("Cannot decode image:", err)
+		panic(err)
 	}
 
 	// Perform the cropping
@@ -59,7 +58,7 @@ func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer) {
 	})
 
 	if err != nil {
-		log.Fatal("Cannot crop image:", err)
+		panic(err)
 	}
 
 	// Now we encode the cropped image data using the appropriate
@@ -71,6 +70,6 @@ func Crop(imageData []byte, cWidth int, cHeight int, w io.Writer) {
 		err = jpeg.Encode(w, croppedImg, &jpeg.Options{})
 	}
 	if err != nil {
-		log.Fatal("Error saving")
+		panic(err)
 	}
 }

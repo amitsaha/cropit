@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"fmt"
 )
 
 // cropImage expectes the following HTTP FORM data:
@@ -15,6 +16,13 @@ import (
 // w: Desired width of the image
 // h: Desired height of the image
 func cropImage(w http.ResponseWriter, r *http.Request) {
+
+	defer func() {
+		if err := recover(); err != nil {
+			http.Error(w, fmt.Sprintf("%s", err), 400)
+		}
+	}()
+
 	file, header, err := r.FormFile("image")
 	if err != nil {
 		http.Error(w, "Cannot read image data", 400)
