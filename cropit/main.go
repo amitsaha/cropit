@@ -35,17 +35,10 @@ func cropper(inputFilePath string, cWidth int, cHeight int, done chan Result) {
 		}
 	}()
 
-	imageData, err := ioutil.ReadFile(inputFilePath)
-	if err != nil {
-		log.Fatal("Cannot open file", err)
-	}
-
+	imageData, _ := ioutil.ReadFile(inputFilePath)
 	croppedFileDir, fileName := filepath.Split(inputFilePath)
 	croppedFileName := fmt.Sprintf("%scropped_%s", croppedFileDir, fileName)
-	croppedFile, err := os.Create(croppedFileName)
-	if err != nil {
-		log.Fatal("Could not create file for cropped image")
-	}
+	croppedFile, _ := os.Create(croppedFileName)
 	defer croppedFile.Close()
 
 	croppedFileWriter := bufio.NewWriter(croppedFile)
